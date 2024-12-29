@@ -1,11 +1,11 @@
 ---
-- name: "Docker Certs"
+- name: Docker Certs
   hosts: "{{ my_hosts | d([]) }}"
   become: true
   vars:
-    certs_path: "/root/docker-certs"
+    certs_path: /root/docker-certs
     cert_validity_days: 3650
-    cn_domain: "your-domain.tld"
+    cn_domain: your-domain.tld
 
   tasks:
     - name: Check if docker certs are existing
