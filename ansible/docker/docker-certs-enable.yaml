@@ -5,7 +5,13 @@
   gather_facts: true
 
   vars:
-    certs_path: /root/docker-certs
+    docker_tls_directory: /root/docker-certs
+
+    docker_tls_ca_crt_file: docker_root_ca.crt.pem
+
+    docker_tls_certificate_cn: your-domain.tld
+    docker_tls_certificate_crt_file: "{{ docker_tls_certificate_cn }}.crt.pem"
+    docker_tls_certificate_key_file: "{{ docker_tls_certificate_cn }}.key.pem"
 
   tasks:
     - name: Check if docker certs are existing
@@ -43,9 +49,9 @@
           -H tcp://{{ ansible_facts['default_ipv4']['address'] }}:2376
           {%- endif %}
           --tlsverify
-          --tlscacert=/root/docker-certs/ca.pem
-          --tlscert=/root/docker-certs/server-cert.pem
-          --tlskey=/root/docker-certs/server-key.pem
+          --tlscacert={{ docker_tls_directory }}/{{ docker_tls_ca_crt_file }}
+          --tlscert={{ docker_tls_directory }}/{{ docker_tls_certificate_crt_file }}
+          --tlskey={{ docker_tls_directory }}/{{ docker_tls_certificate_key_file }}
           {{- '\2' -}}
 
     - name: Reload systemd daemon  # noqa: no-handler
