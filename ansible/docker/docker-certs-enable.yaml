@@ -15,7 +15,7 @@
 
     - name: Fail if docker certs are not existing
       ansible.builtin.fail:
-        msg: Docker certificates are not existing in /root/docker-certs.
+        msg: "Docker certificates are not existing in {{ certs_path }}."
       when: not certs_dir.stat.exists
 
     - name: Change docker daemon to use certs

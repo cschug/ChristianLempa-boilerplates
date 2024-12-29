@@ -29,7 +29,7 @@
 
     - name: Fail if docker certs already exist
       ansible.builtin.fail:
-        msg: "Docker certificates already exist in /root/docker-certs."
+        msg: "Docker certificates already exist in {{ certs_path }}."
       when: certs_list.stdout | default('') != ''
 
     - name: Generate CA private key
