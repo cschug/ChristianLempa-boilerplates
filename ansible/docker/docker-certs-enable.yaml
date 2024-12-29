@@ -27,11 +27,16 @@
           --tlscert={{ certs_path }}/server-cert.pem --tlskey={{ certs_path }}/server-key.pem
         regexp: '^ExecStart='
         state: present
+      notify: Restart docker daemon
+      register: docker_systemd_docker_service
 
-    - name: Reload systemd daemon
+    - name: Reload systemd daemon  # noqa: no-handler
       ansible.builtin.systemd_service:
         daemon_reload: true
+      when:
+        - docker_systemd_docker_service['changed'] | d(false)
 
+  handlers:
     - name: Restart docker daemon
       ansible.builtin.systemd_service:
         name: docker
