@@ -16,13 +16,15 @@
   tasks:
     - name: Check if docker certs are existing
       ansible.builtin.stat:
-        path: "{{ certs_path }}"
-      register: certs_dir
+        path: "{{ docker_tls_directory }}"
+      register: docker_tls_directory_stat
 
     - name: Fail if docker certs are not existing
       ansible.builtin.fail:
-        msg: "Docker certificates are not existing in {{ certs_path }}."
-      when: not certs_dir.stat.exists
+        msg: |-
+          Docker certificates are not existing in {{ docker_tls_directory }}.
+      when:
+        - not docker_tls_directory_stat['stat']['exists']
 
     - name: Source upstream-provided docker daemon systemd unit file
       ansible.builtin.slurp:
