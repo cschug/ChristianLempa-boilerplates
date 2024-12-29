@@ -2,6 +2,7 @@
 - name: Install docker
   hosts: "{{ my_hosts | d([]) }}"
   become: true
+  gather_facts: true
 
   tasks:
     - name: Install docker dependencies
