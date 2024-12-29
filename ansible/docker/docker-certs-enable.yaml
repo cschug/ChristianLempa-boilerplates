@@ -5,7 +5,7 @@
   gather_facts: true
 
   vars:
-    docker_tls_directory: /root/docker-certs
+    docker_tls_directory: /etc/docker_tls
 
     docker_tls_ca_crt_file: docker_root_ca.crt.pem
 
