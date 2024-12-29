@@ -18,17 +18,35 @@
         msg: "Docker certificates are not existing in {{ certs_path }}."
       when: not certs_dir.stat.exists
 
-    - name: Change docker daemon to use certs
-      ansible.builtin.lineinfile:
-        path: /lib/systemd/system/docker.service
-        line: >
-          ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
-          -H tcp://{{ ansible_facts['default_ipv4']['address'] }}:2376 --tlsverify --tlscacert={{ certs_path }}/ca.pem
-          --tlscert={{ certs_path }}/server-cert.pem --tlskey={{ certs_path }}/server-key.pem
-        regexp: '^ExecStart='
-        state: present
+    - name: Source upstream-provided docker daemon systemd unit file
+      ansible.builtin.slurp:
+        src: /lib/systemd/system/docker.service
+      register: docker_systemd_docker_service_orig
+
+    - name: Deploy TLS-enabled docker daemon systemd unit file
+      ansible.builtin.copy:
+        content: "{{ _docker_systemd_docker_service_with_tls_content }}"
+        dest: /etc/systemd/system/docker.service
+        mode: '0644'
+        owner: root
+        group: root
       notify: Restart docker daemon
       register: docker_systemd_docker_service
+      vars:  # noqa: jinja[spacing]
+        _docker_systemd_docker_service_with_tls_content: |
+          {{ docker_systemd_docker_service_orig['content'] | b64decode | regex_replace(_regex_match, _regex_subst) }}
+        _regex_match: '(\s+)-H\s+fd://(\s*)'
+        _regex_subst: >-
+          {{- '\1' -}}
+          -H fd://
+          {%- if ansible_facts['default_ipv4']['address'] | d() is ansible.utils.ip_address %}
+          -H tcp://{{ ansible_facts['default_ipv4']['address'] }}:2376
+          {%- endif %}
+          --tlsverify
+          --tlscacert=/root/docker-certs/ca.pem
+          --tlscert=/root/docker-certs/server-cert.pem
+          --tlskey=/root/docker-certs/server-key.pem
+          {{- '\2' -}}
 
     - name: Reload systemd daemon  # noqa: no-handler
       ansible.builtin.systemd_service:
